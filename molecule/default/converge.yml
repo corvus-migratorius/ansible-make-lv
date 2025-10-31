@@ -63,5 +63,14 @@
       ansible.builtin.debug:
         msg: "/root/image.img is linked to {{ loop_dev[0] }}"
       when: loop_dev != ''
+
   roles:
     - role: genlab.ansible_make_lv
+      vars:
+        virtual_group: "database"
+        logical_volume: "onec"
+        lvm_dev: "{{loop_dev[0]}}"
+        size: 100%FREE
+        fs_type: ext4
+        storage_mountpoint: "/var/lib/postgresql"
+        storage_mountpoint_mode: "0700"
