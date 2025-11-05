@@ -13,24 +13,6 @@
       register: dd_result
       changed_when: dd_result.rc == 0
 
-    - name: Install file package
-      ansible.builtin.apt:
-        name: file
-        state: present
-        update_cache: true
-
-    - name: Get /root/image.img file system
-      ansible.builtin.command: file -b /root/image.img
-      register: img_type
-      changed_when: false
-      ignore_errors: true
-
-    - name: Make file system on image
-      when: "'ext4' not in img_type.stdout"
-      ansible.builtin.command: mkfs.ext4 /root/image.img
-      register: mkfs_result
-      changed_when: mkfs_result.rc == 0
-
     - name: Get linked loop devices
       ansible.builtin.command: losetup -a
       changed_when: false
@@ -66,11 +48,12 @@
 
   roles:
     - role: genlab.ansible_make_lv
-      vars:
-        virtual_group: "database"
-        logical_volume: "onec"
-        lvm_dev: "{{loop_dev[0]}}"
-        size: 100%FREE
-        fs_type: ext4
-        storage_mountpoint: "/var/lib/postgresql"
-        storage_mountpoint_mode: "0700"
+      virtual_group: "database"
+      logical_volume: "onec"
+      lvm_dev: "{{ loop_dev[0] }}"
+      size: 100%FREE
+      fs_type: ext4
+      storage_mountpoint: "/var/lib/postgresql"
+      storage_mountpoint_mode: "0700"
+      mountpoint_owner: root
+      mountpoint_group: root
