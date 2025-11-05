@@ -31,8 +31,8 @@
   ansible.builtin.file:
     path: "{{ storage_mountpoint }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ mountpoint_owner }}"
+    group: "{{ mountpoint_group }}"
     mode: "{{ storage_mountpoint_mode }}"
 
 - name: "Storage | Mount the main storage"
