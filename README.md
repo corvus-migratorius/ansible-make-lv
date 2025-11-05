@@ -1,13 +1,7 @@
-template
+ansible-make-lv
 =========
 
-Template for Ansible role monorepos.
-
-⚠️ Do not forget to update:
-
-- `meta/main.yml`
-- Conda/Mamba manifests
-- this README =) including *the name at the top* and *maintainers*.
+Role for creating simple lv disks with 1 group and 1 volume
 
 Requirements
 ------------
@@ -30,6 +24,15 @@ Example Playbook
 ```yaml
 roles:
     - role: genlab.template
+      virtual_group: "group"
+      logical_volume: "volume"
+      lvm_dev: "/dev/sda"
+      size: 100%FREE
+      fs_type: ext4
+      storage_mountpoint: "/mnt"
+      storage_mountpoint_mode: "0700"
+      mountpoint_owner: root
+      mountpoint_group: root
 ```
 
 License
@@ -40,4 +43,4 @@ BSD
 Author Information
 ------------------
 
-corvus-migratorius@proton.me
+malyuk.ss@genlab.llc
