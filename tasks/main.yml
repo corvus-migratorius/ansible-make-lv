@@ -6,31 +6,84 @@
     state: present
     update_cache: true
     cache_valid_time: 3600
+- name: Check lvm storage exists
+  block:
+    - name: Get volume group list
+      ansible.builtin.shell: |
+        set -o pipefail
+        pvs | grep {{ lvm_dev }}
+      changed_when: false
+      failed_when: false
+      register: vg_list
 
-- name: "Storage | Create a volume group for the storage"
-- name: "Storage | Create a logical volume for the storage"
-  when: not udev_rules
-  tags: [storage, lvm]
-  community.general.lvol:
-    vg: "{{ virtual_group }}"
-    lv: "{{ logical_volume }}"
-    size: "{{ size }}"
-    opts: "--config 'activation/udev_rules=0'"
+    - name: Assert that volume group exists
+      ansible.builtin.assert:
+        that: virtual_group in vg_list.stdout
+        success_msg: "{{ lvm_dev }} has {{ virtual_group }} group"
+        fail_msg: "{{ lvm_dev }} DOES NOT have {{ virtual_group }} group"
 
-- name: "Storage | Create a logical volume for the storage"
-  when: udev_rules
-  tags: [storage, lvm]
-  community.general.lvol:
-    vg: "{{ virtual_group }}"
-    lv: "{{ logical_volume }}"
-    size: "{{ size }}"
-    opts: "--config 'activation/udev_rules=1'"
+    - name: Get logical volume list
+      ansible.builtin.shell: |
+        set -o pipefail
+        lvs | grep {{ virtual_group }} | grep {{ logical_volume }}
+      changed_when: false
+      failed_when: false
+      register: lv_list
 
-- name: "Storage | Create a filesystem for the storage"
-  tags: storage
-  community.general.filesystem:
-    dev: "/dev/{{ virtual_group }}/{{ logical_volume }}"
-    fstype: "{{ fs_type }}"
+    - name: Assert that logical volume exists
+      ansible.builtin.assert:
+        that: logical_volume in lv_list.stdout
+        success_msg: "{{ virtual_group }} has {{ logical_volume }} volume"
+        fail_msg: "{{ virtual_group }} DOES NOT have {{ logical_volume }} volume"
+
+    - name: Get filesystem type
+      ansible.builtin.command: "lsblk -no FSTYPE /dev/{{ virtual_group }}/{{ logical_volume }}"
+      changed_when: false
+      failed_when: false
+      register: current_fs
+
+    - name: Assert that current filesystem is the required one
+      ansible.builtin.assert:
+        that: current_fs.stdout == fs_type
+        success_msg: "{{ virtual_group }} - {{ logical_volume }} has {{ fs_type }} filesystem"
+        fail_msg: "{{ virtual_group }} - {{ logical_volume }} DOES NOT have {{ fs_type }} filesystem"
+
+  rescue:
+    - name: "Storage | Wipe disk signatures"
+      ansible.builtin.command: "wipefs -af {{ lvm_dev }}"
+      register: wipefs_result
+      changed_when: wipefs_result.rc == 0
+
+    - name: "Storage | Create a volume group for the storage"
+      tags: [storage, lvm]
+      community.general.lvg:
+        pvs: "{{ lvm_dev }}"
+        vg: "{{ virtual_group }}"
+        force: true
+
+    - name: "Storage | Create a logical volume for the storage"
+      when: not udev_rules
+      tags: [storage, lvm]
+      community.general.lvol:
+        vg: "{{ virtual_group }}"
+        lv: "{{ logical_volume }}"
+        size: "{{ size }}"
+        opts: "--config 'activation/udev_rules=0'"
+
+    - name: "Storage | Create a logical volume for the storage"
+      when: udev_rules
+      tags: [storage, lvm]
+      community.general.lvol:
+        vg: "{{ virtual_group }}"
+        lv: "{{ logical_volume }}"
+        size: "{{ size }}"
+        opts: "--config 'activation/udev_rules=1'"
+
+    - name: "Storage | Create a filesystem for the storage"
+      tags: storage
+      community.general.filesystem:
+        dev: "/dev/{{ virtual_group }}/{{ logical_volume }}"
+        fstype: "{{ fs_type }}"
 
 - name: "Storage | Create a mountpoint for the storage"
   tags: storage
