@@ -8,17 +8,23 @@
     cache_valid_time: 3600
 
 - name: "Storage | Create a volume group for the storage"
-  tags: [storage, lvm]
-  community.general.lvg:
-    pvs: "{{ lvm_dev }}"
-    vg: "{{ virtual_group }}"
-
 - name: "Storage | Create a logical volume for the storage"
+  when: not udev_rules
   tags: [storage, lvm]
   community.general.lvol:
     vg: "{{ virtual_group }}"
     lv: "{{ logical_volume }}"
     size: "{{ size }}"
+    opts: "--config 'activation/udev_rules=0'"
+
+- name: "Storage | Create a logical volume for the storage"
+  when: udev_rules
+  tags: [storage, lvm]
+  community.general.lvol:
+    vg: "{{ virtual_group }}"
+    lv: "{{ logical_volume }}"
+    size: "{{ size }}"
+    opts: "--config 'activation/udev_rules=1'"
 
 - name: "Storage | Create a filesystem for the storage"
   tags: storage

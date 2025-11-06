@@ -33,6 +33,7 @@ roles:
       storage_mountpoint_mode: "0700"
       mountpoint_owner: root
       mountpoint_group: root
+      udev_rules: true  # if you are using a container set to false, because there is no udev in it
 ```
 
 License
