@@ -21,19 +21,40 @@ None
 Example Playbook
 ----------------
 
+All variables
 ```yaml
 roles:
-    - role: genlab.template
+    - role: genlab.ansible_make_lv
       virtual_group: "group"
       logical_volume: "volume"
       lvm_dev: "/dev/sda"
       size: 100%FREE
       fs_type: ext4
       storage_mountpoint: "/mnt"
-      storage_mountpoint_mode: "0700"
+      storage_mountpoint_mode: "0775"
       mountpoint_owner: root
       mountpoint_group: root
-      udev_rules: true  # if you are using a container set to false, because there is no udev in it
+      is_container: false # disables udev in LVM if true
+```
+
+Minimal variables
+```yaml
+roles:
+    - role: genlab.ansible_make_lv
+      virtual_group: "group"
+      logical_volume: "volume"
+      lvm_dev: "/dev/sda"
+```
+
+Defaults
+```yaml
+size: 100%FREE
+fs_type: ext4
+storage_mountpoint: "/mnt"
+storage_mountpoint_mode: "0775"
+mountpoint_owner: root
+mountpoint_group: root
+is_container: false # disables udev in LVM if true
 ```
 
 License
