@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: "ansible_make_lv"
+  role_name: "make_lv"
   namespace: genlab
   author: "Sergey Malyuk"
   company: "Genlab, LLC"

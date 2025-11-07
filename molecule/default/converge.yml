@@ -47,7 +47,7 @@
       when: loop_dev != ''
 
   roles:
-    - role: genlab.ansible_make_lv
+    - role: genlab.make_lv
       virtual_group: "group"
       logical_volume: "volume"
       lvm_dev: "{{ loop_dev[0] }}"
