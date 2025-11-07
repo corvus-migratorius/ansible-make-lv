@@ -36,7 +36,7 @@ jobs:
         shell: micromamba-shell {0}
 
       - name: "Run Molecule tests"
-        run: molecule test
+        run: molecule test -- -b
         shell: micromamba-shell {0}
         env:
           PY_COLORS: '1'
